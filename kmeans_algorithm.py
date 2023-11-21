@@ -66,27 +66,27 @@ def initialize_centroids(data: np.ndarray, k: int, mode: str) -> dict:
         mode (str): Initialization mode.
 
     Returns:
-            dict: Dictionary of centroids.
+            dic_centroids: Dictionary of centroids.
     """
-    dic = {}
+    dic_centroids = {}
 
     if mode == 'random':
         random_samples = np.random.choice(data.shape[0], k, replace=False)
         centroids = [tuple(data[i, :]) for i in random_samples]
-        dic = {i: centroids[i] for i in range(len(centroids))}
+        dic_centroids = {i: centroids[i] for i in range(len(centroids))}
     elif mode == 'kmeans++':
         first_centroid = np.random.choice(data.shape[0], 1)[0]
-        dic[0] = data[first_centroid, :]
+        dic_centroids[0] = data[first_centroid, :]
 
         for i in range(k - 1):
-            distances = np.array([np.min([euclidean_distance(point, centroid) for centroid in dic.values()]) for point in data])
+            distances = np.array([np.min([euclidean_distance(point, centroid) for centroid in dic_centroids.values()]) for point in data])
             probabilities = distances / sum(distances)
             indice = np.random.choice(range(len(data)), p=probabilities)
-            dic[i + 1] = data[indice, :]
+            dic_centroids[i + 1] = data[indice, :]
     else:
         raise ValueError("'" + mode + "' is not a valid mode.")
 
-    return dic
+    return dic_centroids
 
 def get_labels(point: np.ndarray, dic_centroids: dict) -> int:
     """Gets the label of a point.
@@ -114,19 +114,19 @@ def apply_get_labels(row: np.ndarray, dic_centroids: dict) -> int:
     """
     return get_labels(row, dic_centroids)
 
-def recalculate_centroids(data: np.ndarray, dic: dict, dims: int) -> dict:
+def recalculate_centroids(data: np.ndarray, dic_centroids: dict, dims: int) -> dict:
     """Recalculates the centroids of the clusters.
 
     Args:
         data (np.ndarray): Dataset to cluster.
-        dic (dict): Dictionary of centroids.
+        dic_centroids (dict): Dictionary of centroids.
         dims (int): Number of dimensions.
 
     Returns:
-            dict: Dictionary of centroids.
+            dict: Dictionary of new centroids.
     """
     new_centroids = {}
-    for c, _ in dic.items():
+    for c, _ in dic_centroids.items():
         data_cluster = data[data[:, dims] == c][:, :-1]
         new_centroids[c] = data_cluster.mean(axis=0)
     return new_centroids
